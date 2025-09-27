@@ -1,1 +1,181 @@
-24 Clock
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Mini Projects</title>
+
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <!-- Material Design Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <!-- Material Design CSS -->
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/material-components-web/12.0.0/material-components-web.min.css">
+    </link>
+
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+
+        .app-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px 0;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .header h1 {
+            color: #6200ee;
+            margin: 0;
+            font-weight: 500;
+        }
+
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 24px;
+        }
+
+        .project-card {
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+
+        .project-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+        }
+
+        .card-header {
+            padding: 16px;
+            background-color: #e8eaf6;
+            border-bottom: 1px solid #c5cae9;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 500;
+            margin: 0;
+            color: #4527a0;
+        }
+
+        .card-content {
+            padding: 20px;
+        }
+
+        .card-description {
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+
+        .card-link {
+            display: inline-flex;
+            align-items: center;
+            color: #6200ee;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+
+        .card-link:hover {
+            color: #3700b3;
+        }
+
+        .card-link i {
+            margin-right: 8px;
+        }
+
+        @media (max-width: 600px) {
+            .projects-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <div class="header">
+            <h1><i class="material-icons" style="vertical-align: middle;">code</i> My Mini Projects</h1>
+        </div>
+
+        <div class="projects-grid">
+            <div class="project-card mdc-card">
+                <div class="card-header">
+                    <h2 class="card-title">24clock</h2>
+                </div>
+                <div class="card-content">
+                    <p class="card-description">A 24-hour analog clock implementation using HTML, CSS, and JavaScript.
+                    </p>
+                    <a href="https://hashemian01.github.io/minitools/24clock" class="card-link" target="_blank">
+                        <i class="material-icons">open_in_new</i>
+                        View Project
+                    </a>
+                </div>
+            </div>
+
+            <!-- Add more projects here as needed -->
+            <div class="project-card mdc-card">
+                <div class="card-header">
+                    <h2 class="card-title">sceditor</h2>
+                </div>
+                <div class="card-content">
+                    <p class="card-description">Screenshot Editor.</p>
+                    <a href="#" class="card-link" target="_blank">
+                        <i class="material-icons">open_in_new</i>
+                        View Project
+                    </a>
+                </div>
+            </div>
+
+            <div class="project-card mdc-card">
+                <div class="card-header">
+                    <h2 class="card-title">Timer</h2>
+                </div>
+                <div class="card-content">
+                    <p class="card-description">A Simple timer.</p>
+                    <a href="#" class="card-link" target="_blank">
+                        <i class="material-icons">open_in_new</i>
+                        View Project
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Material Design JavaScript -->
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/material-components-web/12.0.0/material-components-web.min.js"></script>
+
+    <script>
+        // Initialize Material Design components if needed
+        document.addEventListener('DOMContentLoaded', function () {
+            const cards = document.querySelectorAll('.mdc-card');
+            cards.forEach(card => {
+                new mdc.card.MDCCard(card);
+            });
+        });
+    </script>
+</body>
+
+</html>
