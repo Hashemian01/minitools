@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>24-Hour Analog Clock</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-blue: #1976D2;
+            --primary-green: #388E3C;
+            --primary-purple: #7B1FA2;
+            --primary-orange: #F57C00;
+            --ruby-red: #C62828;
+            --surface-light: #F5F5F5;
+            --surface-dark: #121212;
+            --on-surface-light: #333333;
+            --on-surface-dark: #FFFFFF;
+            --shadow-elevation-2: 0 3px 5px -1px rgba(0, 0, 0, .2), 0 6px 10px 0 rgba(0, 0, 0, .14), 0 1px 18px 0 rgba(0, 0, 0, .12);
+            --shadow-elevation-4: 0 4px 8px 0 rgba(0, 0, 0, .2), 0 6px 20px 0 rgba(0, 0, 0, .19);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: var(--surface-light);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 600px;
+            width: 90%;
+            padding: 20px;
+        }
+
+        .clock-wrapper {
+            position: relative;
+            margin-bottom: 30px;
+        }
+
+        .clock {
+            width: 350px;
+            height: 350px;
+            margin: 0 auto;
+            position: relative;
+            background: white;
+            border-radius: 50%;
+            box-shadow: var(--shadow-elevation-4);
+            overflow: hidden;
+        }
+
+        .clock-face {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        .hour-marks {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        .hour-mark {
+            position: absolute;
+            width: 1px;
+            height: 6px;
+            background: #666;
+            left: 50%;
+            margin-left: -0.5px;
+            transform-origin: 50% 175px;
+        }
+
+        .number {
+            position: absolute;
+            font-size: 16px;
+            font-weight: 500;
+            transform-origin: center;
+            color: #333;
+        }
+
+        .hand {
+            position: absolute;
+            bottom: 50%;
+            left: 50%;
+            transform-origin: 50% 100%;
+            border-radius: 4px;
+            z-index: 10;
+        }
+
+        .hour-hand {
+            width: 6px;
+            height: 110px;
+            margin-left: -3px;
+            background: #333;
+        }
+
+        .minute-hand {
+            width: 4px;
+            height: 145px;
+            margin-left: -2px;
+            background: #555;
+        }
+
+        .second-hand {
+            width: 2px;
+            height: 165px;
+            margin-left: -1px;
+            background: var(--primary-blue);
+        }
+
+        .center-dot {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            background: #333;
+            z-index: 11;
+        }
+
+        .digital-time {
+            font-size: 22px;
+            font-weight: 500;
+            color: #333;
+            margin-top: 20px;
+            letter-spacing: 1px;
+            text-align: center;
+        }
+
+        .theme-selector {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            justify-content: center;
+        }
+
+        .theme-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 12px;
+            padding: 6px;
+            box-shadow: var(--shadow-elevation-2);
+            min-width: 35px;
+        }
+
+        .theme-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .theme-preview {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            margin-bottom: 3px;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .theme-name {
+            font-size: 13px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        /* Theme styles */
+        .ocean-theme {
+            background: linear-gradient(135deg, #E3F2FD, #81D4FA);
+        }
+
+        .ocean-theme .clock {
+            background: linear-gradient(135deg, #F5F5F5, #E1F5FE);
+        }
+
+        .ocean-theme .hour-mark,
+        .ocean-theme .number,
+        .ocean-theme .digital-time {
+            color: #0277BD;
+        }
+
+        .ocean-theme .hour-hand,
+        .ocean-theme .minute-hand,
+        .ocean-theme .center-dot {
+            background: #0277BD;
+        }
+
+        .modern-theme {
+            background: linear-gradient(135deg, #263238, #37474F);
+        }
+
+        .modern-theme .clock {
+            background: linear-gradient(135deg, #37474F, #455A64);
+        }
+
+        .modern-theme .hour-mark,
+        .modern-theme .number,
+        .modern-theme .digital-time {
+            color: #CFD8DC;
+        }
+
+        .modern-theme .hour-hand,
+        .modern-theme .minute-hand,
+        .modern-theme .center-dot {
+            background: #CFD8DC;
+        }
+
+        .nature-theme {
+            background: linear-gradient(135deg, #ECEFF1, #A5D6A7);
+        }
+
+        .nature-theme .clock {
+            background: linear-gradient(135deg, #F5F5F5, #E8F5E8);
+        }
+
+        .nature-theme .hour-mark,
+        .nature-theme .number,
+        .nature-theme .digital-time {
+            color: #2E7D32;
+        }
+
+        .nature-theme .hour-hand,
+        .nature-theme .minute-hand,
+        .nature-theme .center-dot {
+            background: #2E7D32;
+        }
+
+        .ruby-theme {
+            background: linear-gradient(135deg, #FFEBEE, #EF5350);
+        }
+
+        .ruby-theme .clock {
+            background: linear-gradient(135deg, #F5F5F5, #FFEbee);
+        }
+
+        .ruby-theme .hour-mark,
+        .ruby-theme .number,
+        .ruby-theme .digital-time {
+            color: #B71C1C;
+        }
+
+        .ruby-theme .hour-hand,
+        .ruby-theme .minute-hand,
+        .ruby-theme .center-dot {
+            background: #B71C1C;
+        }
+
+        @media (max-width: 480px) {
+            .clock {
+                width: 280px;
+                height: 280px;
+            }
+
+            .hour-mark {
+                transform-origin: 50% 140px;
+            }
+
+            .hour-hand {
+                height: 88px;
+            }
+
+            .minute-hand {
+                height: 116px;
+            }
+
+            .second-hand {
+                height: 132px;
+            }
+        }
+    </style>
+</head>
+
+<body class="ocean-theme">
+    <div class="container">
+        <div class="clock-wrapper">
+            <div class="clock">
+                <div class="clock-face">
+                    <!-- Hour marks will be generated by JavaScript -->
+                    <div class="hour-marks"></div>
+
+                    <!-- Numbers will be generated by JavaScript -->
+                    <div class="numbers"></div>
+
+                    <!-- Clock hands -->
+                    <div class="hand hour-hand"></div>
+                    <div class="hand minute-hand"></div>
+                    <div class="hand second-hand"></div>
+
+                    <!-- Center dot -->
+                    <div class="center-dot"></div>
+                </div>
+            </div>
+
+            <div class="digital-time">00:00:00</div>
+        </div>
+
+        <div class="theme-selector">
+            <div class="theme-card" data-theme="ocean">
+                <div class="theme-preview" style="background: linear-gradient(135deg, #81D4FA, #29B6F6);"></div>
+                <span class="theme-name">Ocean</span>
+            </div>
+
+            <div class="theme-card" data-theme="modern">
+                <div class="theme-preview" style="background: linear-gradient(135deg, #455A64, #263238);"></div>
+                <span class="theme-name">Modern</span>
+            </div>
+
+            <div class="theme-card" data-theme="nature">
+                <div class="theme-preview" style="background: linear-gradient(135deg, #A5D6A7, #66BB6A);"></div>
+                <span class="theme-name">Nature</span>
+            </div>
+
+            <div class="theme-card" data-theme="ruby">
+                <div class="theme-preview" style="background: linear-gradient(135deg, #EF5350, #E53935);"></div>
+                <span class="theme-name">Ruby</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const clockFace = document.querySelector('.clock-face');
+        const hourHand = document.querySelector('.hour-hand');
+        const minuteHand = document.querySelector('.minute-hand');
+        const secondHand = document.querySelector('.second-hand');
+        const digitalTime = document.querySelector('.digital-time');
+
+        // Create hour marks and numbers
+        function createClockMarks() {
+            const hourMarksContainer = document.createElement('div');
+            hourMarksContainer.className = 'hour-marks';
+
+            const numbersContainer = document.createElement('div');
+            numbersContainer.className = 'numbers';
+
+            for (let i = 1; i <= 24; i++) {
+                // Create hour mark
+                const hourMark = document.createElement('div');
+                hourMark.className = 'hour-mark';
+                hourMark.style.transform = `rotate(${i * 15}deg)`;
+                hourMarksContainer.appendChild(hourMark);
+
+                // Create number
+                const number = document.createElement('div');
+                number.className = 'number';
+                number.textContent = i;
+                const angle = i * 15;
+                const radius = 155;
+                const x = Math.sin(angle * Math.PI / 180) * radius;
+                const y = -Math.cos(angle * Math.PI / 180) * radius;
+                number.style.left = `calc(50% + ${x}px)`;
+                number.style.top = `calc(50% + ${y}px)`;
+                number.style.transform = 'translate(-50%, -50%)';
+                numbersContainer.appendChild(number);
+            }
+
+            clockFace.appendChild(hourMarksContainer);
+            clockFace.appendChild(numbersContainer);
+        }
+
+        // Update clock
+        function updateClock() {
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+            const seconds = now.getSeconds();
+
+            // Calculate angles for 24-hour format
+            const hourAngle = ((hours % 24) * 15) + (minutes * 0.25);
+            const minuteAngle = minutes * 6 + (seconds * 0.1);
+            const secondAngle = seconds * 6;
+
+            // Apply rotations
+            hourHand.style.transform = `rotate(${hourAngle}deg)`;
+            minuteHand.style.transform = `rotate(${minuteAngle}deg)`;
+            secondHand.style.transform = `rotate(${secondAngle}deg)`;
+
+            // Update digital time
+            digitalTime.textContent = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
+
+        // Theme switching
+        const themeCards = document.querySelectorAll('.theme-card');
+        const body = document.body;
+
+        themeCards.forEach(card => {
+            card.addEventListener('click', () => {
+                const themeClass = card.dataset.theme;
+                body.className = themeClass + '-theme';
+            });
+        });
+
+        // Initialize
+        createClockMarks();
+        updateClock();
+        setInterval(updateClock, 1000);
+    </script>
+</body>
+
+</html>
