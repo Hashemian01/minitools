@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <title>Mastermind</title>
+    <style>
+        :root {
+            --md-primary: #6750a4;
+            --md-on-primary: #ffffff;
+            --md-surface: #fffbfe;
+            --md-on-surface: #1c1b1f;
+            --md-surface-variant: #e7e0ec;
+            --md-outline: #79747e;
+            --bg-color: #fffbfe;
+
+            /* High Contrast Palette */
+            --c-1: #d32f2f;
+            /* Red */
+            --c-2: #1976d2;
+            /* Blue */
+            --c-3: #388e3c;
+            /* Green */
+            --c-4: #fbc02d;
+            /* Yellow */
+            --c-5: #7b1fa2;
+            /* Purple */
+            --c-6: #f57c00;
+            /* Orange */
+            --c-7: #0097a7;
+            /* Cyan */
+            --c-8: #c2185b;
+            /* Pink */
+
+            --dot-green: #2e7d32;
+            --dot-orange: #ef6c00;
+        }
+
+        [data-theme="dark"] {
+            --md-primary: #d0bcff;
+            --md-on-primary: #381e72;
+            --md-surface: #1c1b1f;
+            --md-on-surface: #e6e1e5;
+            --md-surface-variant: #49454f;
+            --md-outline: #938f99;
+            --bg-color: #1c1b1f;
+            --dot-green: #66bb6a;
+            --dot-orange: #ffa726;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--md-on-surface);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            padding: 0 16px;
+        }
+
+        /* 1. Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 420px;
+            height: 60px;
+            flex-shrink: 0;
+            border-bottom: 1px solid var(--md-outline);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        h1 {
+            font-size: 1.2rem;
+            font-weight: 500;
+            margin: 0;
+        }
+
+        /* Mode Badge */
+        .mode-badge {
+            font-size: 0.75rem;
+            padding: 4px 8px;
+            background: var(--md-surface-variant);
+            color: var(--md-primary);
+            border-radius: 8px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            border: 1px solid var(--md-outline);
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: inherit;
+            padding: 8px;
+            display: flex;
+        }
+
+        svg {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+        }
+
+        /* 2. Secret Area */
+        .secret-container {
+            flex-shrink: 0;
+            background-color: var(--md-surface-variant);
+            padding: 8px 0;
+            margin: 8px 0;
+            border-radius: 12px;
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            width: 100%;
+            max-width: 420px;
+        }
+
+        .secret-peg {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--md-surface);
+            border: 2px solid var(--md-outline);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            color: var(--md-outline);
+            font-weight: bold;
+        }
+
+        .secret-peg.revealed {
+            border: none;
+            color: transparent;
+            animation: popIn 0.4s;
+        }
+
+        @keyframes popIn {
+            0% {
+                transform: scale(0)
+            }
+
+            100% {
+                transform: scale(1)
+            }
+        }
+
+        /* 3. Game Board */
+        .game-board {
+            flex-grow: 1;
+            width: 100%;
+            max-width: 420px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding-bottom: 10px;
+            scrollbar-width: thin;
+        }
+
+        .row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 4px 8px;
+            border-radius: 12px;
+            border: 1px solid transparent;
+            min-height: 48px;
+        }
+
+        .row.active {
+            background-color: var(--md-surface-variant);
+            border-color: var(--md-outline);
+        }
+
+        .guess-slots {
+            display: flex;
+            gap: 10px;
+        }
+
+        .peg {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 2px solid var(--md-outline);
+            cursor: default;
+            transition: transform 0.1s;
+        }
+
+        .row.active .peg {
+            cursor: pointer;
+            border-color: var(--md-primary);
+        }
+
+        .row.active .peg:active {
+            transform: scale(0.95);
+        }
+
+        /* Feedback Styles (Adaptive) */
+        .feedback-container {
+            width: 32px;
+            height: 32px;
+            /* Default to Grid (Standard) */
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px;
+        }
+
+        /* Easy Mode Override: Linear Row */
+        .feedback-container.easy-mode {
+            display: flex;
+            gap: 4px;
+            width: auto;
+            height: auto;
+            align-items: center;
+        }
+
+        .feedback-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 1px solid var(--md-outline);
+            background: transparent;
+        }
+
+        .feedback-dot.green {
+            background: var(--dot-green);
+            border-color: var(--dot-green);
+        }
+
+        .feedback-dot.orange {
+            background: var(--dot-orange);
+            border-color: var(--dot-orange);
+        }
+
+        /* 4. Action Footer */
+        .footer {
+            flex-shrink: 0;
+            width: 100%;
+            max-width: 420px;
+            padding: 10px 0 20px 0;
+            display: flex;
+            justify-content: center;
+            background: var(--bg-color);
+            z-index: 10;
+        }
+
+        .btn-check {
+            background-color: var(--md-primary);
+            color: var(--md-on-primary);
+            border: none;
+            width: 100%;
+            padding: 14px 0;
+            border-radius: 100px;
+            font-size: 1rem;
+            font-weight: 500;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .btn-check:active {
+            transform: scale(0.98);
+        }
+
+        .shake {
+            animation: shake 0.4s;
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0)
+            }
+
+            25% {
+                transform: translateX(-5px)
+            }
+
+            75% {
+                transform: translateX(5px)
+            }
+        }
+
+        /* Modals & Toast */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+            z-index: 100;
+            backdrop-filter: blur(2px);
+        }
+
+        .modal-overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal {
+            background: var(--md-surface);
+            padding: 24px;
+            border-radius: 24px;
+            width: 90%;
+            max-width: 320px;
+        }
+
+        .color-options {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-top: 20px;
+            justify-items: center;
+        }
+
+        .color-opt {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .toast {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--md-on-surface);
+            color: var(--md-surface);
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            z-index: 200;
+            white-space: nowrap;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <div class="header-left">
+            <h1>Mastermind</h1>
+            <button id="modeToggle" class="mode-badge" onclick="toggleMode()">Standard</button>
+        </div>
+        <div style="display:flex;">
+            <button class="icon-btn" onclick="initGame()" title="Restart">
+                <svg viewBox="0 0 24 24">
+                    <path
+                        d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" />
+                </svg>
+            </button>
+            <button class="icon-btn" id="themeBtn" title="Theme">
+                <svg viewBox="0 0 24 24">
+                    <path
+                        d="M20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69zM12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6zm0-10c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4z" />
+                </svg>
+            </button>
+            <button class="icon-btn" onclick="document.getElementById('rulesModal').classList.add('open')"
+                title="Rules">
+                <svg viewBox="0 0 24 24">
+                    <path
+                        d="M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z" />
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <div class="secret-container" id="secretBox"></div>
+
+    <div class="game-board" id="board"></div>
+
+    <div class="footer">
+        <button id="checkBtn" class="btn-check">Check Guess</button>
+    </div>
+
+    <div class="modal-overlay" id="colorModal" onclick="if(event.target===this) this.classList.remove('open')">
+        <div class="modal">
+            <h3 style="text-align:center; margin-bottom:10px;">Select Color</h3>
+            <div class="color-options" id="colorOpts"></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="rulesModal">
+        <div class="modal">
+            <h3 style="color:var(--md-primary)">Game Rules</h3>
+            <p><strong>Goal:</strong> Guess the 4-color pattern in 8 tries.</p>
+            <hr style="border:0; border-top:1px solid var(--md-outline); margin:10px 0; opacity:0.5;">
+
+            <p><strong>Standard Mode:</strong><br>
+                Feedback is scrambled (sorted). Dots show counts only.</p>
+
+            <p style="margin-top:8px;"><strong>Easy Mode:</strong><br>
+                Feedback is positional. Dot 1 corresponds to Circle 1.</p>
+
+            <ul style="margin-left:20px; margin-top:10px; line-height:1.6;">
+                <li><b style="color:var(--dot-green)">Green:</b> Correct Color & Position.</li>
+                <li><b style="color:var(--dot-orange)">Orange:</b> Correct Color, Wrong Position.</li>
+            </ul>
+            <button onclick="document.getElementById('rulesModal').classList.remove('open')"
+                style="width:100%; padding:10px; margin-top:15px; border-radius:50px; border:1px solid var(--md-outline); background:transparent; font-weight:bold; cursor:pointer;">Close</button>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // --- Config ---
+        const COLORS = [
+            'var(--c-1)', 'var(--c-2)', 'var(--c-3)', 'var(--c-4)',
+            'var(--c-5)', 'var(--c-6)', 'var(--c-7)', 'var(--c-8)'
+        ];
+        const ROWS = 8;
+        const COLS = 4;
+
+        // --- State ---
+        let secret = [];
+        let currRow = 0;
+        let currGuess = [null, null, null, null];
+        let gameOver = false;
+        let activeIdx = -1;
+        let gameMode = 'standard'; // 'standard' or 'easy'
+
+        // --- Init ---
+        function initGame() {
+            secret = Array.from({ length: COLS }, () => COLORS[Math.floor(Math.random() * COLORS.length)]);
+            currRow = 0;
+            currGuess.fill(null);
+            gameOver = false;
+
+            // Reset UI
+            document.getElementById('secretBox').innerHTML = Array(4).fill('<div class="secret-peg">?</div>').join('');
+            document.getElementById('checkBtn').classList.remove('shake');
+
+            renderBoard();
+            showToast(`Started New Game (${gameMode === 'standard' ? 'Standard' : 'Easy'})`);
+        }
+
+        function toggleMode() {
+            gameMode = gameMode === 'standard' ? 'easy' : 'standard';
+            document.getElementById('modeToggle').textContent = gameMode === 'standard' ? 'Standard' : 'Easy';
+            initGame();
+        }
+
+        function renderBoard() {
+            const board = document.getElementById('board');
+            board.innerHTML = '';
+
+            for (let r = 0; r < ROWS; r++) {
+                const row = document.createElement('div');
+                row.className = `row ${r === 0 ? 'active' : ''}`;
+                row.id = `row-${r}`;
+
+                // Pegs
+                let pegsHtml = '<div class="guess-slots">';
+                for (let c = 0; c < COLS; c++) {
+                    pegsHtml += `<div class="peg" id="peg-${r}-${c}" onclick="clickPeg(${r}, ${c})"></div>`;
+                }
+                pegsHtml += '</div>';
+
+                // Feedback Container
+                // Layout changes based on mode
+                const containerClass = gameMode === 'easy' ? 'feedback-container easy-mode' : 'feedback-container';
+                let fbHtml = `<div class="${containerClass}">`;
+                for (let c = 0; c < COLS; c++) {
+                    fbHtml += `<div class="feedback-dot" id="fb-${r}-${c}"></div>`;
+                }
+                fbHtml += '</div>';
+
+                row.innerHTML = pegsHtml + fbHtml;
+                board.appendChild(row);
+            }
+
+            // Init Color Picker
+            const cp = document.getElementById('colorOpts');
+            cp.innerHTML = '';
+            COLORS.forEach(c => {
+                const b = document.createElement('button');
+                b.className = 'color-opt';
+                b.style.backgroundColor = c;
+                b.onclick = () => selectColor(c);
+                cp.appendChild(b);
+            });
+        }
+
+        // --- Interaction ---
+        window.clickPeg = (r, c) => {
+            if (gameOver || r !== currRow) return;
+            activeIdx = c;
+            document.getElementById('colorModal').classList.add('open');
+        };
+
+        function selectColor(color) {
+            currGuess[activeIdx] = color;
+            const peg = document.getElementById(`peg-${currRow}-${activeIdx}`);
+            peg.style.backgroundColor = color;
+            peg.style.borderColor = color;
+            document.getElementById('colorModal').classList.remove('open');
+        }
+
+        document.getElementById('checkBtn').onclick = () => {
+            if (gameOver) return;
+
+            if (currGuess.includes(null)) {
+                const btn = document.getElementById('checkBtn');
+                btn.classList.remove('shake');
+                void btn.offsetWidth;
+                btn.classList.add('shake');
+                showToast("Fill all circles first!");
+                return;
+            }
+
+            // Branch Logic Based on Mode
+            if (gameMode === 'standard') {
+                processStandardGuess();
+            } else {
+                processEasyGuess();
+            }
+        };
+
+        // --- LOGIC: STANDARD (Counts Only) ---
+        function processStandardGuess() {
+            const { green, orange } = calculateStandardFeedback(currGuess, secret);
+
+            let dotIdx = 0;
+            // Fill Greens first
+            for (let i = 0; i < green; i++) document.getElementById(`fb-${currRow}-${dotIdx++}`).className = 'feedback-dot green';
+            // Then Oranges
+            for (let i = 0; i < orange; i++) document.getElementById(`fb-${currRow}-${dotIdx++}`).className = 'feedback-dot orange';
+
+            checkWinCondition(green === COLS);
+        }
+
+        function calculateStandardFeedback(guess, secret) {
+            let green = 0; let orange = 0;
+            const secretFreq = {}; const guessFreq = {};
+
+            for (let i = 0; i < COLS; i++) {
+                if (guess[i] === secret[i]) {
+                    green++;
+                } else {
+                    secretFreq[secret[i]] = (secretFreq[secret[i]] || 0) + 1;
+                    guessFreq[guess[i]] = (guessFreq[guess[i]] || 0) + 1;
+                }
+            }
+            for (let k in guessFreq) {
+                if (secretFreq[k]) orange += Math.min(guessFreq[k], secretFreq[k]);
+            }
+            return { green, orange };
+        }
+
+        // --- LOGIC: EASY (Positional) ---
+        function processEasyGuess() {
+            const feedbackArr = calculateEasyFeedback(currGuess, secret);
+
+            let greenCount = 0;
+            feedbackArr.forEach((status, i) => {
+                if (status === 'green') greenCount++;
+                if (status) document.getElementById(`fb-${currRow}-${i}`).className = `feedback-dot ${status}`;
+            });
+
+            checkWinCondition(greenCount === COLS);
+        }
+
+        function calculateEasyFeedback(guess, secret) {
+            const results = Array(4).fill(null);
+            const secretFreq = {};
+
+            // Build frequency map
+            for (const c of secret) secretFreq[c] = (secretFreq[c] || 0) + 1;
+
+            // 1. Exact Matches (Green)
+            for (let i = 0; i < 4; i++) {
+                if (guess[i] === secret[i]) {
+                    results[i] = 'green';
+                    secretFreq[guess[i]]--;
+                }
+            }
+
+            // 2. Existence Matches (Orange)
+            for (let i = 0; i < 4; i++) {
+                if (results[i] !== 'green') {
+                    const color = guess[i];
+                    if (secretFreq[color] > 0) {
+                        results[i] = 'orange';
+                        secretFreq[color]--;
+                    }
+                }
+            }
+            return results;
+        }
+
+        // --- Common End Game ---
+        function checkWinCondition(isWin) {
+            if (isWin) {
+                endGame(true);
+            } else if (currRow === ROWS - 1) {
+                endGame(false);
+            } else {
+                // Next Row
+                document.getElementById(`row-${currRow}`).classList.remove('active');
+                currRow++;
+                currGuess.fill(null);
+                document.getElementById(`row-${currRow}`).classList.add('active');
+                document.getElementById(`row-${currRow}`).scrollIntoView({ behavior: "smooth", block: "center" });
+            }
+        }
+
+        function endGame(won) {
+            gameOver = true;
+            document.getElementById(`row-${currRow}`).classList.remove('active');
+
+            const container = document.getElementById('secretBox');
+            container.innerHTML = '';
+            secret.forEach((c, i) => {
+                const p = document.createElement('div');
+                p.className = 'secret-peg revealed';
+                p.style.backgroundColor = c;
+                p.style.animationDelay = (i * 0.1) + 's';
+                container.appendChild(p);
+            });
+            showToast(won ? "🎉 You Won!" : "Game Over");
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2000);
+        }
+
+        document.getElementById('themeBtn').onclick = () => {
+            const h = document.documentElement;
+            h.setAttribute('data-theme', h.getAttribute('data-theme') === 'light' ? 'dark' : 'light');
+        };
+
+        // Start
+        initGame();
+
+    </script>
+</body>
+
+</html>
