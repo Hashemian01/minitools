@@ -448,7 +448,7 @@
                 clearInterval(timerInterval);
                 const duration = Date.now() - startTime;
                 const record = {
-                    startTime: new Date(startTime).toLocaleTimeString(),
+                    startTime: `${new Date(startTime).toLocaleTimeString()}, ${new Date(startTime).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' })}`,
                     duration: duration
                 };
                 records.push(record);
